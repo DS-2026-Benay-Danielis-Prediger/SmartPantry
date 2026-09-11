@@ -1,0 +1,53 @@
+<Solution>
+    <Configurations>
+        <BuildType Name="Debug" />
+        <BuildType Name="Default" />
+        <BuildType Name="Release" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/SmartPantry.Application.Contracts/SmartPantry.Application.Contracts.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.Application/SmartPantry.Application.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.DbMigrator/SmartPantry.DbMigrator.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.Domain.Shared/SmartPantry.Domain.Shared.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.Domain/SmartPantry.Domain.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.EntityFrameworkCore/SmartPantry.EntityFrameworkCore.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.HttpApi.Client/SmartPantry.HttpApi.Client.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.HttpApi.Host/SmartPantry.HttpApi.Host.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="src/SmartPantry.HttpApi/SmartPantry.HttpApi.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/SmartPantry.Application.Tests/SmartPantry.Application.Tests.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="test/SmartPantry.Domain.Tests/SmartPantry.Domain.Tests.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="test/SmartPantry.EntityFrameworkCore.Tests/SmartPantry.EntityFrameworkCore.Tests.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="test/SmartPantry.HttpApi.Client.ConsoleTestApp/SmartPantry.HttpApi.Client.ConsoleTestApp.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+        <Project Path="test/SmartPantry.TestBase/SmartPantry.TestBase.csproj">
+            <BuildType Solution="Default|*" Project="Release" />
+        </Project>
+    </Folder>
+</Solution>

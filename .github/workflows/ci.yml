@@ -28,7 +28,7 @@ jobs:
       - name: Verificar marcadores obligatorios
         shell: bash
         run: |
-          if grep -En '<(organizacion|repositorio|Nombre del proyecto|Nombre y usuario GitHub)>' README.md CONTRIBUTING.md .github/CODEOWNERS; then
+          if grep -En '(DS -2026- Benay-Danielis-Prediger|SmartPantry|Desarrollo de Software 2026|Misael y MisaelPrediger)' README.md CONTRIBUTING.md .github/CODEOWNERS; then
             echo "::error::Quedan marcadores obligatorios sin reemplazar"
             exit 1
           fi
