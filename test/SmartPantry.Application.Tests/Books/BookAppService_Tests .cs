@@ -37,7 +37,7 @@ public abstract class BookAppService_Tests<TStartupModule> : SmartPantryApplicat
     {
         //Arrange:get an existing author seeded in test data
         var authorRepository = GetRequiredService<IRepository<Author, Guid>>();
-        var author = await authorRepository.GetListAsync(); // Assuming there's at least one author seeded
+        var authors = await authorRepository.GetListAsync(); // Assuming there's at least one author seeded
         var authorId = authors.First().Id;
 
         //Act
