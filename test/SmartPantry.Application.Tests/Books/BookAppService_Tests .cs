@@ -6,6 +6,8 @@ using Volo.Abp.Application.Dtos;
 using Volo.Abp.Modularity;
 using Volo.Abp.Validation;
 using Xunit;
+using SmartPantry.Authors;  // Para el tipo Author
+using Volo.Abp.Domain.Repositories;  // Para IRepository<,>
 
 namespace SmartPantry.Books;
 
@@ -37,7 +39,7 @@ public abstract class BookAppService_Tests<TStartupModule> : SmartPantryApplicat
     {
         //Arrange:get an existing author seeded in test data
         var authorRepository = GetRequiredService<IRepository<Author, Guid>>();
-        var authors = await authorRepository.GetListAsync(); // Assuming there's at least one author seeded
+        var authors = await authorRepository.GetListAsync(); 
         var authorId = authors.First().Id;
 
         //Act
