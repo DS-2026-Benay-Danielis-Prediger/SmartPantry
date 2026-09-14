@@ -35,6 +35,11 @@ public abstract class BookAppService_Tests<TStartupModule> : SmartPantryApplicat
     [Fact]
     public async Task Should_Create_A_Valid_Book()
     {
+        //Arrange:get an existing author seeded in test data
+        var authorRepository = GetRequiredService<IRepository<Author, Guid>>();
+        var author = await authorRepository.GetListAsync(); // Assuming there's at least one author seeded
+        var authorId = authors.First().Id;
+
         //Act
         var result = await _bookAppService.CreateAsync(
             new CreateUpdateBookDto
@@ -42,7 +47,8 @@ public abstract class BookAppService_Tests<TStartupModule> : SmartPantryApplicat
                 Name = "New test book 42",
                 Price = 10,
                 PublishDate = DateTime.Now,
-                Type = BookType.ScienceFiction
+                Type = BookType.ScienceFiction,
+                AuthorId = authorId             
             }
         );
 
