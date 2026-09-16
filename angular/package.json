@@ -55,5 +55,6 @@
     "jsdom": "^27.1.0",
     "typescript": "~6.0.3",
     "vitest": "^4.0.0"
+    "@vitest/browser-playwright": "^4.0.0"
   }
 }
