@@ -21,6 +21,16 @@ verify:
             .github/ISSUE_TEMPLATE/feature.yml
             .github/workflows/ci.yml
           )
+            for file in "${required_files[@]}"; do
+            test -f "$file" || { echo "::error file=$file::Falta el archivo requerido"; exit 1; }
+          done
+      - name: Verificar marcadores obligatorios
+        shell: bash
+        run: |
+          if grep -En '<(organizacion|repositorio|Nombre del proyecto|Nombre y usuario GitHub)>' README.md CONTRIBUTING.md .github/CODEOWNERS; then
+            echo "::error::Quedan marcadores obligatorios sin reemplazar"
+            exit 1
+          fi
  backend:
  runs-on: ubuntu-latest
  steps:
