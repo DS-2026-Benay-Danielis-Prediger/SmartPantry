@@ -4,6 +4,7 @@ on:
  push:
   branches: [main, stg, prod]
 jobs:
+backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
