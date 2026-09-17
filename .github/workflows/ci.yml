@@ -31,6 +31,8 @@ verify:
             echo "::error::Quedan marcadores obligatorios sin reemplazar"
             exit 1
           fi
+          - name: Alcance de TP02
+        run: echo "La compilación y las pruebas .NET se incorporan en TP03."
  backend:
  runs-on: ubuntu-latest
  steps:
@@ -49,7 +51,7 @@ verify:
  steps:
  - uses: actions/checkout@v4
  - uses: actions/setup-node@v4
- ith:
+ with:
  node-version: 24
  - run: corepack enable
  - run: yarn install --frozen-lockfile
