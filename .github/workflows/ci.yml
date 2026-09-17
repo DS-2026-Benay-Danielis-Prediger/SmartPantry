@@ -4,6 +4,23 @@ on:
  push:
  branches: [main, stg, prod]
 jobs:
+verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verificar archivos requeridos
+        shell: bash
+        run: |
+          required_files=(
+            README.md
+            CONTRIBUTING.md
+            CONFIGURACION_INICIAL.md
+            .gitignore
+            .github/CODEOWNERS
+            .github/PULL_REQUEST_TEMPLATE.md
+            .github/ISSUE_TEMPLATE/feature.yml
+            .github/workflows/ci.yml
+          )
  backend:
  runs-on: ubuntu-latest
  steps:
