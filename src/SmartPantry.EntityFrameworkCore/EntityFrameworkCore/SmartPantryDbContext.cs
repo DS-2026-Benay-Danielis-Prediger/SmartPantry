@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using SmartPantry.Authors;
 using SmartPantry.Books;
+using SmartPantry.Productos;
+using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -11,9 +12,9 @@ using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
-using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ public class SmartPantryDbContext :
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
     public DbSet<Author> Authors { get; set; }
-
+    public DbSet<Producto> Productos { get; set; }
     public DbSet<Book> Books { get; set; }
 
     #region Entities from the modules
@@ -83,6 +84,16 @@ public class SmartPantryDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
+
+        builder.Entity<Producto>(b =>
+        {
+            b.ToTable(SmartPantryConsts.DbTablePrefix + "Productos", SmartPantryConsts.DbSchema);
+            b.ConfigureByConvention(); // Mapea Id y propiedades heredadas
+
+            b.Property(x => x.CodigoBarras).IsRequired().HasMaxLength(64);
+            b.Property(x => x.Nombre).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Marca).IsRequired().HasMaxLength(128);
+        });
 
         builder.Entity<Author>(b =>
         {
