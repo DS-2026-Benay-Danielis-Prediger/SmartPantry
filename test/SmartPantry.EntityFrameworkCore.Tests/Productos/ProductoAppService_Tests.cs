@@ -61,4 +61,26 @@ public class ProductoAppService_Tests : SmartPantryEntityFrameworkCoreTestBase
             await _productoAppService.CreateAsync(createDto);
         });
     }
+    [Fact]
+    public async Task Deberia_Crear_Y_Dar_De_Baja_Logica_Un_Producto()
+    {
+        // 1. Crear
+        var productoDto = await _productoAppService.CreateAsync(new CreateUpdateProductoDto
+        {
+            CodigoBarras = "7790040000123",
+            Nombre = "Chocolinas",
+            Marca = "Bagley",
+            Ingredientes = new List<string> { "Harina", "Cacao" },
+            Alergenos = new List<string> { "Gluten" }
+        });
+
+        productoDto.Activo.ShouldBeTrue();
+
+        // 2. Dar de baja lógica
+        await _productoAppService.DeleteAsync(productoDto.Id);
+
+        // 3. Consultar y verificar baja lógica
+        var productoConsultado = await _productoAppService.GetAsync(productoDto.Id);
+        productoConsultado.Activo.ShouldBeFalse();
+    }
 }

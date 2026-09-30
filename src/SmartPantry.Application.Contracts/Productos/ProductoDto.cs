@@ -11,4 +11,5 @@ public class ProductoDto : EntityDto<Guid>
     public string Marca { get; set; } = string.Empty;
     public List<string> Ingredientes { get; set; } = new();
     public List<string> Alergenos { get; set; } = new();
+    public bool Activo { get; set; } 
 }
