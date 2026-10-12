@@ -1,39 +1,80 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using SmartPantry.Productos;
+using Volo.Abp;
+using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 
 namespace SmartPantry.Productos;
 
-public class ProductoAppService : ApplicationService, IProductoAppService
+public class ProductoAppService :
+    CrudAppService<
+        Producto,                       // Entidad de Dominio[cite: 1]
+        ProductoDto,                    // DTO devuelto
+        Guid,                           // Clave primaria
+        PagedAndSortedResultRequestDto, // Paginación del TP06[cite: 2]
+        CreateUpdateProductoDto>,       // DTO para crear y modificar
+    IProductoAppService
 {
-    private readonly IRepository<Producto, Guid> _productoRepository;
-
-    public ProductoAppService(IRepository<Producto, Guid> productoRepository)
+    public ProductoAppService(IRepository<Producto, Guid> repository)
+        : base(repository)
     {
-        _productoRepository = productoRepository;
     }
 
-    public async Task<ProductoDto> CreateAsync(CreateUpdateProductoDto input)
+    // Maneja la creación y reactivación de productos dados de baja
+    public override async Task<ProductoDto> CreateAsync(CreateUpdateProductoDto input)
     {
-        var producto = new Producto
+        var productoExistente = await Repository.FirstOrDefaultAsync(p => p.CodigoBarras == input.CodigoBarras);
+
+        if (productoExistente != null)
         {
-            CodigoBarras = input.CodigoBarras,
-            Nombre = input.Nombre,
-            Marca = input.Marca,
-            Ingredientes = input.Ingredientes ?? new List<string>(),
-            Alergenos = input.Alergenos ?? new List<string>()
-        };
+            if (productoExistente.Activo)
+            {
+                throw new UserFriendlyException($"El producto con código de barras {input.CodigoBarras} ya existe y está activo.");
+            }
 
-        await _productoRepository.InsertAsync(producto);
+            // Si estaba dado de baja, lo reactivamos y le actualizamos los datos
+            productoExistente.Reactivar();
+            productoExistente.ModificarDatos(
+                input.Nombre,
+                input.Marca,
+                input.CodigoBarras,
+                input.Ingredientes,
+                input.Alergenos
+            );
 
+            await Repository.UpdateAsync(productoExistente);
+            return ObjectMapper.Map<Producto, ProductoDto>(productoExistente);
+        }
+
+        return await base.CreateAsync(input);
+    }
+
+    // Sobrescribimos UpdateAsync para aplicar las validaciones del dominio
+    public override async Task<ProductoDto> UpdateAsync(Guid id, CreateUpdateProductoDto input)
+    {
+        var producto = await Repository.GetAsync(id);
+
+        producto.ModificarDatos(
+            input.Nombre,
+            input.Marca,
+            input.CodigoBarras,
+            input.Ingredientes,
+            input.Alergenos
+        );
+
+        await Repository.UpdateAsync(producto);
         return ObjectMapper.Map<Producto, ProductoDto>(producto);
     }
 
-    public async Task<ProductoDto> GetAsync(Guid id)
+    // Sobrescribimos DeleteAsync para hacer la BAJA LÓGICA (cambia Activo a false)
+    public override async Task DeleteAsync(Guid id)
     {
-        var producto = await _productoRepository.GetAsync(id);
-        return ObjectMapper.Map<Producto, ProductoDto>(producto);
+        var producto = await Repository.GetAsync(id);
+
+        producto.Desactivar(); // Llama al método de la entidad
+
+        await Repository.UpdateAsync(producto);
     }
 }

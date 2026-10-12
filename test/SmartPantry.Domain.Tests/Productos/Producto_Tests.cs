@@ -44,4 +44,46 @@ public class Producto_Tests
         // Assert
         string.IsNullOrWhiteSpace(producto.Nombre).ShouldBeTrue();
     }
+    [Fact]
+    public void Deberia_Modificar_Datos_Correctamente()
+    {
+        // Arrange
+        var producto = new Producto
+        {
+            CodigoBarras = "7791234567890",
+            Nombre = "Leche Entera",
+            Marca = "La Serenisima",
+            Ingredientes = new List<string> { "Leche fluidas" },
+            Alergenos = new List<string> { "Leche" }
+        };
+
+        // Act
+        producto.ModificarDatos("Leche Descremada","7791234567890", "La Serenisima", new List<string> { "Leche descremada" }, new List<string> { "Leche" });
+
+        // Assert
+        producto.Nombre.ShouldBe("Leche Descremada");
+    }
+
+
+    [Fact]
+    public void Deberia_Desactivar_Y_Reactivar_Producto()
+    {
+        // Arrange
+        var producto = new Producto
+        {
+            CodigoBarras = "7791234567890",
+            Nombre = "Leche Entera",
+            Marca = "La Serenisima"
+        };
+
+        // Act - Desactivar
+        producto.Desactivar();
+        producto.Activo.ShouldBeFalse();
+
+        // Act - Reactivar (Llamada sin argumentos)
+        producto.Reactivar();
+
+        // Assert
+        producto.Activo.ShouldBeTrue();
+    }
 }

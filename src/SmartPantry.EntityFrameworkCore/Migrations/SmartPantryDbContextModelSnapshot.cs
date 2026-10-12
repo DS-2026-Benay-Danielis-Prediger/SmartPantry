@@ -150,6 +150,9 @@ namespace SmartPantry.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
                     b.PrimitiveCollection<string>("Alergenos")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
