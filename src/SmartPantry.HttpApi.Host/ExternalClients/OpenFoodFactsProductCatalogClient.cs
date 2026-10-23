@@ -20,7 +20,9 @@ public class OpenFoodFactsProductCatalogClient : IExternalProductCatalogClient
     public async Task<ExternalProductDto?> GetByBarcodeAsync(string barcode)
     {
         const string fields = "code,product_name,product_name_es,brands,image_front_url,ingredients_text,allergens_tags";
-        var path = $"api/v0/product/{barcode}.json?fields={fields}";
+
+        // Usamos la URL absoluta completa para evitar errores de rutas relativas
+        var url = $"https://world.openfoodfacts.org/api/v0/product/{barcode}.json?fields={fields}";
 
         // Open Food Facts exige obligatoriamente un User-Agent personalizado para evitar bloqueos
         if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
@@ -28,7 +30,7 @@ public class OpenFoodFactsProductCatalogClient : IExternalProductCatalogClient
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "SmartPantry-UTN - Version 1.0");
         }
 
-        var response = await _httpClient.GetAsync(path);
+        var response = await _httpClient.GetAsync(url);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
