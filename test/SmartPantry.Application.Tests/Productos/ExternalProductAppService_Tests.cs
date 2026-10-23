@@ -56,6 +56,23 @@ public class ExternalProductAppService_Tests
     }
 
     [Fact]
+    public async Task Deberia_Manejar_Datos_Ausentes()
+    {
+        var barcode = "3017620422003";
+        _mockCatalogClient.GetByBarcodeAsync(barcode).Returns(new ExternalProductDto
+        {
+            CodigoBarras = barcode,
+            Nombre = null, // Simulamos datos ausentes
+            Marca = null
+        });
+
+        var result = await _appService.ConsultarPorCodigoAsync(new ConsultaProductoExternoDto { CodigoBarras = barcode });
+
+        result.Estado.ShouldBe(EstadoConsultaProductoExterno.Encontrado);
+        result.Nombre.ShouldBeNullOrEmpty();
+        result.Marca.ShouldBeNullOrEmpty();
+    }
+    [Fact]
     public async Task Deberia_Manejar_Servicio_No_Disponible()
     {
         _mockCatalogClient.GetByBarcodeAsync(Arg.Any<string>()).Throws(new ExternalServiceUnavailableException());
