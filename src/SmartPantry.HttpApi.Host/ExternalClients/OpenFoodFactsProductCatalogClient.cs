@@ -22,7 +22,7 @@ public class OpenFoodFactsProductCatalogClient : IExternalProductCatalogClient
         const string fields = "code,product_name,product_name_es,brands,image_front_url,ingredients_text,allergens_tags";
 
 
-        var url = $"https://world.openfoodfacts.org/api/v3/product/{barcode}.json?fields={fields}";
+        var url = $"product/{barcode}.json?fields={fields}";
 
         // Open Food Facts exige obligatoriamente un User-Agent personalizado para evitar bloqueos
         if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
