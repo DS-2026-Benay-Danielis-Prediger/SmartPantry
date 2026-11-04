@@ -27,29 +27,24 @@ public class PantryExpirationProcessingService : ITransientDependency
     {
         using var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
 
-        // Criterio unificado en UTC (exigencia del TP)
         var today = DateTime.UtcNow.Date;
         int umbralDias = 3;
         var fechaUmbral = today.AddDays(umbralDias);
 
-        // Obtener todos los ítems de despensa
         var items = await _itemDespensaRepository.GetListAsync();
 
         foreach (var item in items)
         {
-            // 1. Omitir si ya está consumido o no tiene fecha de vencimiento
             if (item.Estado == "Consumido" || !item.FechaVencimiento.HasValue)
             {
-                // Si tuviera una advertencia activa previa, la desactivamos
                 await DesactivarAdvertenciasSiExistenAsync(item.Id);
                 continue;
             }
 
             var fechaVenc = item.FechaVencimiento.Value.Date;
-            string tipoAdvertencia = null;
-            string mensaje = null;
+            string? tipoAdvertencia = null; // Declarado como nullable
+            string? mensaje = null;          // Declarado como nullable
 
-            // 2. Evaluar reglas de negocio (Vencido vs Próximo a vencer)
             if (fechaVenc < today)
             {
                 tipoAdvertencia = "Vencido";
@@ -61,16 +56,14 @@ public class PantryExpirationProcessingService : ITransientDependency
                 mensaje = $"El ítem con ID {item.Id} está próximo a vencer (Fecha: {fechaVenc:yyyy-MM-dd}).";
             }
 
-            // 3. Gestionar la advertencia aplicando idempotencia
-            if (tipoAdvertencia != null)
+            if (tipoAdvertencia != null && mensaje != null)
             {
-                var advertenciaExistente = await _advertenciaRepository.FirstOrDefaultAsync(
+                Advertencia? advertenciaExistente = await _advertenciaRepository.FirstOrDefaultAsync(
                     a => a.ItemDespensaId == item.Id && a.TipoAdvertencia == tipoAdvertencia
                 );
 
                 if (advertenciaExistente == null)
                 {
-                    // Crear nueva advertencia (protegida por el índice único de la BD)
                     var nuevaAdvertencia = new Advertencia
                     {
                         ItemDespensaId = item.Id,
@@ -82,7 +75,6 @@ public class PantryExpirationProcessingService : ITransientDependency
                 }
                 else
                 {
-                    // Si ya existe, nos aseguramos de que esté activa y actualizamos el mensaje si cambió
                     advertenciaExistente.Activa = true;
                     advertenciaExistente.Mensaje = mensaje;
                     await _advertenciaRepository.UpdateAsync(advertenciaExistente);
@@ -90,7 +82,6 @@ public class PantryExpirationProcessingService : ITransientDependency
             }
             else
             {
-                // Si el ítem ya está fuera del umbral de riesgo, desactivamos sus advertencias
                 await DesactivarAdvertenciasSiExistenAsync(item.Id);
             }
         }
