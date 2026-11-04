@@ -121,5 +121,19 @@ public class SmartPantryDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+        builder.Entity<ItemDespensa>(b =>
+        {
+            b.ToTable(SmartPantryConsts.DbTablePrefix + "ItemDespensas", SmartPantryConsts.DbSchema);
+            b.ConfigureByConvention();
+        });
+
+        builder.Entity<Advertencia>(b =>
+        {
+            b.ToTable(SmartPantryConsts.DbTablePrefix + "Advertencias", SmartPantryConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            // Índice único crucial para la idempotencia (un ítem no puede tener dos advertencias del mismo tipo duplicadas)
+            b.HasIndex(x => new { x.ItemDespensaId, x.TipoAdvertencia }).IsUnique();
+        });
     }
 }
