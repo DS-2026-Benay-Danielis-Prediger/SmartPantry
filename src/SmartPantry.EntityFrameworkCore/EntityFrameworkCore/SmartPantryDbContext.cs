@@ -33,6 +33,8 @@ public class SmartPantryDbContext :
     public DbSet<Author> Authors { get; set; }
     public DbSet<Producto> Productos { get; set; }
     public DbSet<Book> Books { get; set; }
+    public DbSet<ItemDespensa> ItemDespensas { get; set; }
+    public DbSet<Advertencia> Advertencias { get; set; }
 
     #region Entities from the modules
 
