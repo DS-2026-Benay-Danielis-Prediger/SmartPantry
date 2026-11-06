@@ -3,31 +3,41 @@ using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.Timing; // <-- Importante para IClock
 using Volo.Abp.Uow;
 
 namespace SmartPantry.Despensa;
 
-public class PantryExpirationProcessingService : ITransientDependency
+public interface IPantryExpirationProcessingService
+{
+    Task ProcessExpirationsAsync();
+}
+
+public class PantryExpirationProcessingService : IPantryExpirationProcessingService, ITransientDependency
 {
     private readonly IRepository<ItemDespensa, Guid> _itemDespensaRepository;
     private readonly IRepository<Advertencia, Guid> _advertenciaRepository;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
+    private readonly IClock _clock; // <-- Declaramos IClock
 
     public PantryExpirationProcessingService(
         IRepository<ItemDespensa, Guid> itemDespensaRepository,
         IRepository<Advertencia, Guid> advertenciaRepository,
-        IUnitOfWorkManager unitOfWorkManager)
+        IUnitOfWorkManager unitOfWorkManager,
+        IClock clock) // <-- Lo inyectamos en el constructor
     {
         _itemDespensaRepository = itemDespensaRepository;
         _advertenciaRepository = advertenciaRepository;
         _unitOfWorkManager = unitOfWorkManager;
+        _clock = clock;
     }
 
     public async Task ProcessExpirationsAsync()
     {
         using var uow = _unitOfWorkManager.Begin(requiresNew: true, isTransactional: true);
 
-        var today = DateTime.UtcNow.Date;
+        // Usamos _clock.Now en lugar de DateTime.UtcNow para permitir pruebas con fechas controladas
+        var today = _clock.Now.Date;
         int umbralDias = 3;
         var fechaUmbral = today.AddDays(umbralDias);
 
@@ -42,8 +52,8 @@ public class PantryExpirationProcessingService : ITransientDependency
             }
 
             var fechaVenc = item.FechaVencimiento.Value.Date;
-            string? tipoAdvertencia = null; // Declarado como nullable
-            string? mensaje = null;          // Declarado como nullable
+            string? tipoAdvertencia = null;
+            string? mensaje = null;
 
             if (fechaVenc < today)
             {

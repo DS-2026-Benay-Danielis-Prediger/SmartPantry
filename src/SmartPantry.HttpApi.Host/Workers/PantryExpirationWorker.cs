@@ -21,13 +21,21 @@ public class PantryExpirationWorker : AsyncPeriodicBackgroundWorkerBase
 
     protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
     {
-        Logger.LogInformation("Iniciando verificación automática de vencimientos (RF-15)...");
+        try
+        {
+            Logger.LogInformation("Iniciando verificación automática de vencimientos (RF-15)...");
 
-        // Se resuelve utilizando la interfaz correcta
-        var processingService = workerContext
-            .ServiceProvider
-            .GetRequiredService<PantryExpirationProcessingService>();
+            // Se resuelve el servicio
+            var processingService = workerContext
+                .ServiceProvider
+                .GetRequiredService<PantryExpirationProcessingService>();
 
-        await processingService.ProcessExpirationsAsync();
+            await processingService.ProcessExpirationsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Se captura el error para que las próximas ejecuciones del worker no se interrumpan
+            Logger.LogError(ex, "Ocurrió un error durante la ejecución del worker de vencimientos.");
+        }
     }
 }
