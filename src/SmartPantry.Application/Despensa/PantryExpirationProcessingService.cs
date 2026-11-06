@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Timing;
+using Volo.Abp.Uow; 
 
 namespace SmartPantry.Despensa;
 
@@ -28,6 +29,7 @@ public class PantryExpirationProcessingService : IPantryExpirationProcessingServ
         _clock = clock;
     }
 
+    [UnitOfWork] //  Esto evita el ObjectDisposedException gestionando la transacción y el ciclo de vida
     public async Task ProcessExpirationsAsync()
     {
         var today = _clock.Now.Date;
