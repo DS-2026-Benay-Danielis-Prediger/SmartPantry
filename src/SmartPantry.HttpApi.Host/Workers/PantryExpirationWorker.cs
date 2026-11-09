@@ -15,8 +15,8 @@ public class PantryExpirationWorker : AsyncPeriodicBackgroundWorkerBase
         IServiceScopeFactory serviceScopeFactory
     ) : base(timer, serviceScopeFactory)
     {
-        // Intervalo de ejecución configurado a 10 segundos para pruebas
-        Timer.Period = 10000;
+        // Intervalo de ejecución configurado a 1 hora
+        Timer.Period = 3600000;
     }
 
     protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
