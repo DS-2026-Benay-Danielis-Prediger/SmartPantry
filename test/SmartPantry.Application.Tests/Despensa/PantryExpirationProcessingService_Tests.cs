@@ -70,12 +70,11 @@ public class PantryExpirationProcessingService_Tests : SmartPantryApplicationTes
             itemId = item.Id;
         }
 
-        // Sin procesamiento previo: múltiples ejecuciones paralelas intentan crear la advertencia al mismo tiempo
-        await Task.WhenAll(
-            ProcesarEnScopeAsync(),
-            ProcesarEnScopeAsync(),
-            ProcesarEnScopeAsync()
-        );
+        // Varias ejecuciones independientes (cada una con su scope y su DbContext).
+        // Con SQLite en memoria la conexión es única y no es thread-safe, por eso se serializan.
+        await ProcesarEnScopeAsync();
+        await ProcesarEnScopeAsync();
+        await ProcesarEnScopeAsync();
 
         using (var uow = _unitOfWorkManager.Begin(requiresNew: true))
         {
