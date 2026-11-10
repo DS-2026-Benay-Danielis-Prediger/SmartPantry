@@ -70,16 +70,17 @@ public class PantryExpirationProcessingService_Tests : SmartPantryApplicationTes
             itemId = item.Id;
         }
 
-        // Varias ejecuciones independientes (cada una con su scope y su DbContext).
-        // Con SQLite en memoria la conexión es única y no es thread-safe, por eso se serializan.
-        await ProcesarEnScopeAsync();
-        await ProcesarEnScopeAsync();
-        await ProcesarEnScopeAsync();
+        // Ejecución verdaderamente simultánea (en paralelo) utilizando scopes independientes
+        await Task.WhenAll(
+            ProcesarEnScopeAsync(),
+            ProcesarEnScopeAsync(),
+            ProcesarEnScopeAsync()
+        );
 
         using (var uow = _unitOfWorkManager.Begin(requiresNew: true))
         {
             var list = await _advertenciaRepository.GetListAsync(a => a.ItemDespensaId == itemId);
-            list.Count.ShouldBe(1);
+            list.Count.ShouldBe(1); // Debe quedar una sola advertencia, sin duplicados
             await uow.CompleteAsync();
         }
     }
