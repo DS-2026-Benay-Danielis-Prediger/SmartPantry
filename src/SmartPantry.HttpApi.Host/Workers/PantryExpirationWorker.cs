@@ -1,0 +1,41 @@
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Volo.Abp.BackgroundWorkers;
+using Volo.Abp.Threading;
+using SmartPantry.Despensa;
+
+namespace SmartPantry;
+
+public class PantryExpirationWorker : AsyncPeriodicBackgroundWorkerBase
+{
+    public PantryExpirationWorker(
+        AbpAsyncTimer timer,
+        IServiceScopeFactory serviceScopeFactory
+    ) : base(timer, serviceScopeFactory)
+    {
+        // Intervalo de ejecución configurado a 1 hora
+        Timer.Period = 3600000;
+    }
+
+    protected override async Task DoWorkAsync(PeriodicBackgroundWorkerContext workerContext)
+    {
+        try
+        {
+            Logger.LogInformation("Iniciando verificación automática de vencimientos (RF-15)...");
+
+            // Se resuelve el servicio
+            var processingService = workerContext
+                .ServiceProvider
+                .GetRequiredService<PantryExpirationProcessingService>();
+
+            await processingService.ProcessExpirationsAsync();
+        }
+        catch (Exception ex)
+        {
+            // Se captura el error para que las próximas ejecuciones del worker no se interrumpan
+            Logger.LogError(ex, "Ocurrió un error durante la ejecución del worker de vencimientos.");
+        }
+    }
+}

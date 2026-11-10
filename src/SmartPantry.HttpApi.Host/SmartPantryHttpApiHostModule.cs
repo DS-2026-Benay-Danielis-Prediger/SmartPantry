@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
@@ -31,6 +32,7 @@ using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
 using Volo.Abp.Autofac;
+using Volo.Abp.BackgroundWorkers; // <-- Asegura que esté este using
 using Volo.Abp.Identity;
 using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
@@ -54,8 +56,9 @@ namespace SmartPantry;
     typeof(SmartPantryEntityFrameworkCoreModule),
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpSwashbuckleModule),
-    typeof(AbpAspNetCoreSerilogModule)
-    )]
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(AbpBackgroundWorkersModule) // <-- 1. Añadido aquí
+)]
 public class SmartPantryHttpApiHostModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -105,7 +108,7 @@ public class SmartPantryHttpApiHostModule : AbpModule
             {
                 options.DisableTransportSecurityRequirement = true;
             });
-            
+
             Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
@@ -267,7 +270,7 @@ public class SmartPantryHttpApiHostModule : AbpModule
     }
 
 
-    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    public override async Task OnApplicationInitializationAsync(ApplicationInitializationContext context) // <-- 2. Cambiado a Async
     {
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
@@ -314,5 +317,8 @@ public class SmartPantryHttpApiHostModule : AbpModule
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseConfiguredEndpoints();
+
+        // Registrar el worker de vencimientos en el administrador de antecedentes de ABP
+        await context.AddBackgroundWorkerAsync<PantryExpirationWorker>(); // <-- 3. Línea del worker añadida aquí
     }
 }
