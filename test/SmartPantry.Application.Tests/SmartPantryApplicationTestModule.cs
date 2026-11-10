@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using System;
+using System.IO;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SmartPantry.EntityFrameworkCore;
@@ -16,11 +18,11 @@ namespace SmartPantry;
 )]
 public class SmartPantryApplicationTestModule : AbpModule
 {
-    private SqliteConnection? _sqliteConnection;
+    private string? _dbPath;
 
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
-        ConfigureInMemorySqlite(context.Services);
+        ConfigureSqliteEnArchivoTemporal(context.Services);
 
         // Deshabilitamos transacciones automáticas para evitar conflictos con SQLite
         Configure<AbpUnitOfWorkDefaultOptions>(options =>
@@ -29,38 +31,73 @@ public class SmartPantryApplicationTestModule : AbpModule
         });
     }
 
-    private void ConfigureInMemorySqlite(IServiceCollection services)
+    /// <summary>
+    /// Usa una base SQLite en archivo temporal (única por test) en lugar de una única
+    /// conexión en memoria compartida. Cada DbContext abre su propia conexión, así que
+    /// las ejecuciones en paralelo no comparten una SqliteConnection (que no es thread-safe).
+    /// </summary>
+    private void ConfigureSqliteEnArchivoTemporal(IServiceCollection services)
     {
-        _sqliteConnection = CreateDatabaseAndGetConnection();
+        _dbPath = Path.Combine(Path.GetTempPath(), $"smartpantry-tests-{Guid.NewGuid():N}.db");
+
+        // Default Timeout: ante escrituras simultáneas, espera en lugar de fallar con "database is locked".
+        // Pooling=False: las conexiones se cierran de verdad al liberarlas (permite borrar el archivo al final).
+        var connectionString = $"Data Source={_dbPath};Default Timeout=30;Pooling=False";
+
+        CrearBaseDeDatos(connectionString);
 
         services.Configure<AbpDbContextOptions>(options =>
         {
             options.Configure(abpDbContextConfigurationContext =>
             {
-                abpDbContextConfigurationContext.DbContextOptions.UseSqlite(_sqliteConnection);
+                abpDbContextConfigurationContext.DbContextOptions.UseSqlite(connectionString);
             });
         });
     }
 
-    private static SqliteConnection CreateDatabaseAndGetConnection()
+    private static void CrearBaseDeDatos(string connectionString)
     {
-        var connection = new SqliteConnection("Data Source=:memory:;Cache=Shared");
-        connection.Open();
+        // WAL permite lecturas y escrituras concurrentes con menos bloqueos; el modo queda guardado en el archivo.
+        using (var connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            using var command = connection.CreateCommand();
+            command.CommandText = "PRAGMA journal_mode=WAL;";
+            command.ExecuteNonQuery();
+        }
 
         var options = new DbContextOptionsBuilder<SmartPantryDbContext>()
-            .UseSqlite(connection)
+            .UseSqlite(connectionString)
             .Options;
 
         using (var context = new SmartPantryDbContext(options))
         {
             context.Database.EnsureCreated();
         }
-
-        return connection;
     }
 
     public override void OnApplicationShutdown(ApplicationShutdownContext context)
     {
-        _sqliteConnection?.Dispose();
+        SqliteConnection.ClearAllPools();
+
+        if (_dbPath == null)
+        {
+            return;
+        }
+
+        foreach (var file in new[] { _dbPath, _dbPath + "-wal", _dbPath + "-shm" })
+        {
+            try
+            {
+                if (File.Exists(file))
+                {
+                    File.Delete(file);
+                }
+            }
+            catch (IOException)
+            {
+                // Archivo temporal: si no se puede borrar ahora, queda en la carpeta temp del sistema.
+            }
+        }
     }
 }
