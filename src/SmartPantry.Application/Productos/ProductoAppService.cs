@@ -5,9 +5,10 @@ using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-
+using Microsoft.AspNetCore.Authorization;
 namespace SmartPantry.Productos;
 
+[Authorize]
 public class ProductoAppService :
     CrudAppService<
         Producto,                       // Entidad de Dominio[cite: 1]
