@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Services;
-
+using Microsoft.AspNetCore.Authorization;
 namespace SmartPantry.Productos;
 
+[Authorize]
 public class ExternalProductAppService : ApplicationService, IExternalProductAppService
 {
     private readonly IExternalProductCatalogClient _externalCatalogClient;
